@@ -44,35 +44,23 @@ Widget.Content = styled.div`
     list-style: none;
     padding: 0;
   }
-  form{
-    display:flex;
-    flex-direction:column;
+`;
 
-    input{
-      width: 100%;
-      padding:0 5px;
-      height: 35px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      background-color:transparent;
-      border:1px solid #efefef;
-      color:#fff
-    }
+Widget.Topic = styled.a`
+  outline: 0;
+  text-decoration: none;
+  color: ${({ theme }) => theme.colors.contrastText};
+  background-color: ${({ theme }) => `${theme.colors.primary}40`};
+  padding: 10px 15px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: ${({ theme }) => theme.borderRadius};
+  transition: .3s;
+  display: block;
 
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-      width: 100%;
-      height: 35px;
-      background-color: #ffd700;
-      color: #000;
-    }
-    button:disabled {
-      cursor: default;
-      background-color: #b5b5b5;
-      color:#7d7d7d;
-    }
+  &:hover,
+  &:focus {
+    opacity: .5;
   }
 `;
 
