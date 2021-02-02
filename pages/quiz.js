@@ -6,21 +6,21 @@ import QuizQuestion from '../src/components/QuizQuestion';
 import QuizLogo from '../src/components/QuizLogo';
 import QuizBackground from '../src/components/QuizBackground';
 import QuizContainer from '../src/components/QuizContainer';
-import LoadingWidget from '../src/components/LoadingWidget';
+import QuizLoading from '../src/components/QuizLoading';
+import QuizResult from '../src/components/QuizResult';
 
 const screenStates = {
   LOADING: 'LOADING',
   QUIZ: 'QUIZ',
   RESULT: 'RESULT',
-  FAIL: 'FAIL',
 };
 export default function QuizPage() {
   const [screenState, setScreenState] = useState(screenStates.LOADING);
+  const [results, setResults] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [questionSelection, setQuestionSelection] = useState(-1);
   const questionIndex = currentQuestion;
-  const totalQuestion = db.questions.length;
   const question = db.questions[questionIndex];
+  const totalQuestions = db.questions.length;
 
   useEffect(() => {
     setTimeout(() => {
@@ -28,21 +28,17 @@ export default function QuizPage() {
     }, 1 * 1000);
   }, []);
 
-  function handleSubmitQuiz() {
-    if (Number(questionSelection) !== question.answer) {
-      setScreenState(screenStates.FAIL);
+  function handleNextQuestion() {
+    const nextQuestion = questionIndex + 1;
+    if (nextQuestion < totalQuestions) {
+      setCurrentQuestion(nextQuestion);
     } else {
-      const nextQuestion = questionIndex + 1;
-      if (nextQuestion < totalQuestion) {
-        setCurrentQuestion(nextQuestion);
-      } else {
-        setScreenState(screenStates.RESULT);
-      }
+      setScreenState(screenStates.RESULT);
     }
   }
 
-  function handleChangeQuestionSelected(questionSelected) {
-    setQuestionSelection(questionSelected);
+  function handleAddResult(result) {
+    setResults([...results, result]);
   }
 
   return (
@@ -50,18 +46,22 @@ export default function QuizPage() {
       <QuizBackground backgroundImage={db.bg}>
         <QuizContainer>
           <QuizLogo />
-          {screenState === screenStates.LOADING && <LoadingWidget />}
+          {screenState === screenStates.LOADING && <QuizLoading />}
           {screenState === screenStates.QUIZ && (
           <QuizQuestion
             question={question}
-            totalQuestion={totalQuestion}
             questionIndex={questionIndex}
-            onHandleSubmitQuiz={handleSubmitQuiz}
-            onHandleChangeQuestionSelected={handleChangeQuestionSelected}
+            totalQuestions={totalQuestions}
+            onHandleNextQuestion={handleNextQuestion}
+            onHandleAddResult={handleAddResult}
           />
           )}
-          {screenState === screenStates.RESULT && <div>Parabéns</div>}
-          {screenState === screenStates.FAIL && <div>Perdeu</div>}
+
+          {screenState === screenStates.RESULT && (
+          <QuizResult
+            results={results}
+          />
+          )}
         </QuizContainer>
       </QuizBackground>
     </>

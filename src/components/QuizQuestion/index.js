@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import Widget from '../Widget';
+import AlternativesForm from '../AlternativesForm';
 import Button from '../Button';
 
 export default function QuizQuestion({
-  question, totalQuestion, questionIndex, onHandleSubmitQuiz, onHandleChangeQuestionSelected,
+  question,
+  questionIndex,
+  totalQuestions,
+  onHandleNextQuestion,
+  onHandleAddResult,
 }) {
   const questionName = `question__${questionIndex}`;
+  const [selectedAlternative, setSelectedAlternative] = useState(undefined);
+  const [isQuestionSubmitted, setIsQuestionSubmitted] = useState(false);
+  const isCorrect = selectedAlternative === question.answer;
+  const hasAlternativeSelected = selectedAlternative !== undefined;
+
+  const handleFormQuestion = (e) => {
+    e.preventDefault();
+    setIsQuestionSubmitted(true);
+    setTimeout(() => {
+      onHandleAddResult(isCorrect);
+      onHandleNextQuestion();
+      setIsQuestionSubmitted(false);
+      setSelectedAlternative(undefined);
+    }, 3 * 1000);
+  };
+
   return (
     <Widget>
       <Widget.Header>
         {/* <BackLinkArrow href="/" /> */}
-        <h3>{`Pergunta ${questionIndex + 1} de ${totalQuestion}`}</h3>
+        <h3>{`Pergunta ${questionIndex + 1} de ${totalQuestions}`}</h3>
       </Widget.Header>
       <img
         alt="Descrição"
@@ -24,27 +45,38 @@ export default function QuizQuestion({
         src={question.image}
       />
       <Widget.Content>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          onHandleSubmitQuiz();
-        }}
-        >
+        <AlternativesForm onSubmit={handleFormQuestion}>
+
           <h2>{question.title}</h2>
           <p>{question.description}</p>
-          {question.alternatives.map((alternative, index) => (
-            <Widget.Topic as="label" key={String(index)} htmlFor={`question-${index}`}>
-              <input
-                type="radio"
-                id={`question-${index}`}
-                value={index}
-                name={questionName}
-                onChange={(e) => onHandleChangeQuestionSelected(e.target.value)}
-              />
-              {alternative}
-            </Widget.Topic>
-          ))}
-          <Button type="submit">Confirmar</Button>
-        </form>
+          {question.alternatives.map((alternative, index) => {
+            const alternativeId = `alternative__${index}`;
+            const alternativeStatus = isCorrect ? 'SUCCESS' : 'ERROR';
+            const isSelected = selectedAlternative === index;
+            return (
+              <Widget.Topic
+                as="label"
+                key={String(index)}
+                htmlFor={alternativeId}
+                data-selected={isSelected}
+                data-status={isQuestionSubmitted && alternativeStatus}
+              >
+                <input
+                  type="radio"
+                  id={alternativeId}
+                  value={index}
+                  name={questionName}
+                  onClick={(e) => setSelectedAlternative(index)}
+                  style={{ display: 'none' }}
+                />
+                {alternative}
+              </Widget.Topic>
+            );
+          })}
+          <Button type="submit" disabled={!hasAlternativeSelected}>Confirmar</Button>
+        </AlternativesForm>
+        {(isQuestionSubmitted && isCorrect) && <p>Acertou</p>}
+        {(isQuestionSubmitted && !isCorrect) && <p>Errou</p>}
       </Widget.Content>
     </Widget>
   );
@@ -66,8 +98,8 @@ QuizQuestion.propTypes = {
     answer: PropTypes.number.isRequired,
     alternatives: PropTypes.arrayOf.isRequired,
   }),
-  totalQuestion: PropTypes.number.isRequired,
+  totalQuestions: PropTypes.number.isRequired,
   questionIndex: PropTypes.number.isRequired,
-  onHandleSubmitQuiz: PropTypes.func.isRequired,
-  onHandleChangeQuestionSelected: PropTypes.func.isRequired,
+  onHandleNextQuestion: PropTypes.func.isRequired,
+  onHandleAddResult: PropTypes.func.isRequired,
 };
